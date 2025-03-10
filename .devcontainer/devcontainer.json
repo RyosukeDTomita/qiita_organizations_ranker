@@ -1,0 +1,33 @@
+{
+  "name": "devcontainer", // 任意
+  "dockerComposeFile": [
+    "../compose.yaml",
+    "compose.yaml"
+  ],
+  "service": "fixme", // compose.yamlのサービス名
+  "workspaceFolder": "/app",
+  "overrideCommand": true, // コンテナを起動したままにする DockerfileのCMDで永続するコマンドを実行しているなら不要
+  // Dev Container起動時に開発ツールをインストール
+  "postCreateCommand": "./.devcontainer/install-pkg.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "DavidAnson.vscode-markdownlint",
+        "exiasr.hadolint",
+        "oderwat.indent-rainbow",
+        "aaron-bond.better-comments", // コメントに色付け
+        "VisualStudioExptTeam.vscodeintellicode",
+        "christian-kohler.path-intellisense",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "Gruntfuggly.todo-tree",
+        "shardulm94.trailing-spaces", // 文末の空白を可視化
+        "ryu1kn.partial-diff",
+        "dzhavat.bracket-pair-toggler", // カッコを色付け
+        "alefragnani.Bookmarks",
+        "mosapride.zenkaku", // 全角スペースの可視化
+        "ICS.japanese-proofreading",
+      ]
+    }
+  }
+}
