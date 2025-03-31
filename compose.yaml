@@ -1,13 +1,8 @@
-version: '3'
-
 services:
-  react-app: # FIXME
+  deno_app:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: react-img-prod:latest # FIXME
-    container_name: react-container-prod # FIXME
-    # ports:
-    #   - 80:8080 # localport:dockerport
-    # volumes:
-    #   - ./:/app
+    image: deno_img:latest
+    container_name: deno_container
+

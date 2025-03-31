@@ -1,23 +1,8 @@
-# Build Image
-# FIXME: image name should be changed to the correct one
-FROM node:20 AS build
-# WORKDIR /app
-COPY . .
-RUN echo "Building the app"
+FROM mcr.microsoft.com/devcontainers/base:bookworm AS devcontainers
 
+WORKDIR /app
 
-# Product Image
-# FIXME: image name should be changed to the correct one
-FROM public.ecr.aws/eks-distro-build-tooling/eks-distro-minimal-base-nginx:latest-al23
+# install deno
+RUN curl -fsSL https://deno.land/install.sh | sudo DENO_INSTALL=/usr/local sh
 
-USER root
-RUN <<EOF
-echo "Installing app"
-echo "Done"
-EOF
-
-# COPY --from=build /app/build /usr/share/nginx/html
-
-# EXPOSE 8080
-# USER nginx
-# CMD ["nginx", "-g", "daemon off;"]
+CMD ["deno", "run", "--allow-net", "--allow-env", "--allow-read", "main.ts"]

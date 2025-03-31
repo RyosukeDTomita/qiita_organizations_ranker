@@ -1,32 +1,26 @@
 {
-  "name": "devcontainer", // 任意
+  "name": "dev-container-test", // 任意の値
   "dockerComposeFile": [
     "../compose.yaml",
     "compose.yaml"
   ],
-  "service": "fixme", // compose.yamlのサービス名
+  "service": "deno_app", // compose.yamlのサービス名
   "workspaceFolder": "/app",
-  "overrideCommand": true, // コンテナを起動したままにする DockerfileのCMDで永続するコマンドを実行しているなら不要
-  // Dev Container起動時に開発ツールをインストール
-  "postCreateCommand": "./.devcontainer/install-pkg.sh",
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/guiyomh/features/vim:0": {},
+    "ghcr.io/dhoeric/features/hadolint:1": {}
+  },
+  "overrideCommand": true,
   "customizations": {
     "vscode": {
       "extensions": [
+        "formulahendry.auto-rename-tag",
         "DavidAnson.vscode-markdownlint",
         "exiasr.hadolint",
         "oderwat.indent-rainbow",
-        "aaron-bond.better-comments", // コメントに色付け
-        "VisualStudioExptTeam.vscodeintellicode",
-        "christian-kohler.path-intellisense",
-        "streetsidesoftware.code-spell-checker",
-        "eamodio.gitlens",
-        "Gruntfuggly.todo-tree",
-        "shardulm94.trailing-spaces", // 文末の空白を可視化
-        "ryu1kn.partial-diff",
-        "dzhavat.bracket-pair-toggler", // カッコを色付け
-        "alefragnani.Bookmarks",
-        "mosapride.zenkaku", // 全角スペースの可視化
-        "ICS.japanese-proofreading",
+        "ionutvmi.path-autocomplete",
+        "denoland.vscode-deno",
       ]
     }
   }
