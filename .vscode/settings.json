@@ -9,4 +9,5 @@
     "MD010": false, // タブ
     "MD013": false // 長い行
   },
+  "deno.enable": true
 }
