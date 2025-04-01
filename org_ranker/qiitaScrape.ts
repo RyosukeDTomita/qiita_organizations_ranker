@@ -9,7 +9,6 @@ export async function fetchQiitaOrgUsers(orgName: string): Promise<string[]> {
   }
 
   const url = `https://qiita.com/organizations/${orgName}/members`;
-  console.log(`Fetching Qiita organization members page: ${url}`);
 
   try {
     const response = await fetch(url);

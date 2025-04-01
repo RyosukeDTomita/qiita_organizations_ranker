@@ -24,9 +24,17 @@ async function listQiitaOrgMembers(orgName: string): Promise<string[]> {
 }
 
 if (import.meta.main) {
-  const usernames = await listQiitaOrgMembers("nri");
+  // 実行時の引数でOrganization名を取得
+  const args = Deno.args;
+  if (args.length !== 1) {
+    console.error("Usage: deno run --allow-net --allow-read main.ts <org_name>");
+    Deno.exit(1);
+  }
+  const orgName = args[0];
 
-  // Ensure API key is properly fetched before processing any users
+  const usernames = await listQiitaOrgMembers(orgName);
+
+  // Qiita API keyを取得
   let apiKey: string;
   try {
     apiKey = await getQiitaApiKey();
@@ -38,7 +46,7 @@ if (import.meta.main) {
     Deno.exit(1);
   }
 
-  // 各ユーザーのフォロワー数とユーザー名のペアを作成
+  // Qiita APIで各ユーザーのフォロワー数とユーザー名のペアを作成
   const userFollowers: { username: string; count: number }[] = [];
   for (const username of usernames) {
     try {
