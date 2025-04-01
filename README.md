@@ -5,7 +5,6 @@
 ## INDEX
 
 - [ABOUT](#about)
-- [LICENSE](#license)
 - [ENVIRONMENT](#environment)
 - [PREPARING](#preparing)
 - [HOW TO USE](#how-to-use)
@@ -130,6 +129,16 @@ deno fmt --watch # ファイルが変更されると自動でフォーマット�
 
 ```shell
 deno check main.ts
+```
+
+#### compile
+
+> On the first invocation of deno compile, Deno will download the relevant binary and cache it in $DENO_DIR. [deno compile](https://docs.deno.com/runtime/reference/cli/compile/)
+
+deno compileはデフォルトで依存関係を自動的に解決するのでmain.tsを指定してcompileするだけで良い。
+
+```shell
+deno compile --allow-net --allow-env --allow-read --output main main.ts
 ```
 
 ### taskとは
