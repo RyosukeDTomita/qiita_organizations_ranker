@@ -18,45 +18,37 @@ QiitaのOrganizationsのデータを集めるプロジェクト
 
 ### 実装機能一覧
 
-- Organizationsの全ユーザのフォロワー数を集計してランキングする。
+- Organizationsの全ユーザを指定した指標で集計してランキングする。指標は実行時の第2引数で切り替える。
+  - `followers`: フォロワー数（Qiita API）
+  - `contributions`: Contribution数（プロフィールページのスクレイピング。Qiita APIでは取得できないため）
+  - `items`: 投稿記事数（Qiita API）
 
   ```shell
-  Fetching Qiita organization members page: https://qiita.com/organizations/sigma/members
   Total members in sigma organization: 4
 
   Users ranked by follower count:
-  1. User: hoge, Followers: 777
-  2. User: fuga, Followers: 666
-  3. User: hogehoge, Followers: 188
-  4. User: sigma_devsecops, Followers: 160
+  1. User: hoge, follower count: 777
+  2. User: fuga, follower count: 666
+  3. User: hogehoge, follower count: 188
+  4. User: sigma_devsecops, follower count: 160
   ```
 
 ---
 
 ## ENVIRONMENT
 
-Deno: 2.2.5
+- Nix (flakes有効化)
+- Deno (flakeのdevShellで提供)
 
 ---
 
 ## PREPARING
 
-### For Dev Container
+### Nix flake
 
-1. install VSCode, Docker
-2. install VSCode Extensions *Dev ContainerS*
-3. On the VSCode, `Ctrl shift p` and run `Dev Containers: Rebuild Containers`
-4. create .env and add `QIITA_API_KEY`
+1. [Nix](https://nixos.org/download/) をインストールし、flakesを有効化する。
 
-  ```shell
-  cat << EOF > org_ranker/.env
-  QIITA_API_KEY=hogehogefugafuga
-  EOF
-  ```
-
-### Docker
-
-1. create .env and add `QIITA_API_KEY`
+2. `followers` / `items` 指標を使う場合は `.env` に `QIITA_API_KEY` を設定する（`contributions` 指標はスクレイピングのためAPI keyは不要）。
 
   ```shell
   cat << EOF > org_ranker/.env
@@ -64,41 +56,32 @@ Deno: 2.2.5
   EOF
   ```
 
-2. build docker image
+3. 開発シェルに入る。
 
   ```shell
-  docker compose build
+  nix develop
+  # direnvを使う場合は `direnv allow` でディレクトリに入ると自動で読み込まれる
   ```
 
 ---
 
 ## HOW TO USE
 
-### deno run(Dev Container)
+`<metric>` には `followers` / `contributions` / `items` のいずれかを指定する。
 
 ```shell
-cd org_ranker
-deno run --allow-net --allow-env --allow-read main.ts <organization_name>
+deno task start <organization_name> <metric>
 ```
 
-### docker run
-
 ```shell
-docker compose run deno_app <organization_name>
+deno task start <organization_name> followers
+deno task start <organization_name> contributions
+deno task start <organization_name> items
 ```
 
 ---
 
 ## DENO MEMO
-
-### install
-
-公式ドキュメント通りにinstallすると~/.deno/配下にinstallされてしまう。
-Dockerで使う場合などはユーザの$HOME配下にインストールされると不便なので，/usr/local/配下にinstallした
-
-```shell
-RUN curl -fsSL https://deno.land/install.sh | sudo DENO_INSTALL=/usr/local sh
-```
 
 ### denoコマンド
 

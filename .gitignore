@@ -11,6 +11,9 @@
 # production
 /build
 
+# nix / direnv
+.direnv/
+
 # misc
 .DS_Store
 .env

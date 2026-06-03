@@ -22,16 +22,26 @@ export async function getQiitaApiKey(): Promise<string> {
 }
 
 /**
- * Qiita APIを使用してユーザーのフォロワー数を取得する関数
+ * Qiita APIで取得するユーザーの統計情報
  */
-export async function fetchQiitaUserFollowers(
+export interface QiitaUserStats {
+  /** フォロワー数 */
+  followersCount: number;
+  /** 投稿記事数 */
+  itemsCount: number;
+}
+
+/**
+ * Qiita APIを使用してユーザーの統計情報（フォロワー数・記事数）を取得する関数
+ */
+export async function fetchQiitaUserStats(
   apiKey: string,
   username: string,
-): Promise<number> {
+): Promise<QiitaUserStats> {
   // Validate apiKey to ensure it's a non-empty string
   if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
     console.error(`Invalid API key provided for user ${username}`);
-    return 0;
+    return { followersCount: 0, itemsCount: 0 };
   }
 
   const url = `https://qiita.com/api/v2/users/${username}`;
@@ -44,9 +54,12 @@ export async function fetchQiitaUserFollowers(
       throw new Error(`Failed to fetch user information: ${response.status}`);
     }
     const userData = await response.json();
-    return userData.followers_count || 0;
+    return {
+      followersCount: userData.followers_count || 0,
+      itemsCount: userData.items_count || 0,
+    };
   } catch (error) {
-    console.error(`Error fetching user followers: ${error}`);
-    return 0;
+    console.error(`Error fetching user stats: ${error}`);
+    return { followersCount: 0, itemsCount: 0 };
   }
 }
