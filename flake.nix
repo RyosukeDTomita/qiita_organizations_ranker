@@ -14,6 +14,7 @@
         packages = [
           pkgs.deno
           pkgs.pinact
+          pkgs.ghalint
         ];
 
         # QIITA_API_KEY は .env や export で渡す想定
