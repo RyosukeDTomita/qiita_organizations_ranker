@@ -1,7 +1,9 @@
 {
   "tasks": {
     "dev": "deno run --watch main.ts",
-    "start": "deno run --allow-net --allow-env --allow-read main.ts",
+    "contributions": "deno run --allow-net main.ts contributions",
+    "followers": "deno run --allow-net --allow-env --allow-read main.ts followers",
+    "items": "deno run --allow-net --allow-env --allow-read main.ts items",
     "test": "deno test --allow-net --allow-env"
   },
   "imports": {

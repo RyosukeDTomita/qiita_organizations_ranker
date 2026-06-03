@@ -67,17 +67,19 @@ QiitaのOrganizationsのデータを集めるプロジェクト
 
 ## HOW TO USE
 
-`<metric>` には `followers` / `contributions` / `items` のいずれかを指定する。
+集計したい `<metric>` (`followers` / `contributions` / `items`) をタスク名として指定する。
 
 ```shell
-deno task start <organization_name> <metric>
+deno task <metric> <organization_name>
 ```
 
 ```shell
-deno task start <organization_name> followers
-deno task start <organization_name> contributions
-deno task start <organization_name> items
+deno task followers <organization_name>
+deno task contributions <organization_name>
+deno task items <organization_name>
 ```
+
+`contributions` はプロフィールページのスクレイピングのみで取得するため `--allow-net` だけで動作する。`followers` / `items` は Qiita API key を `.env` から読み込むため `--allow-env --allow-read` も付与している (タスク定義済み)。
 
 ---
 

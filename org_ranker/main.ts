@@ -88,20 +88,20 @@ if (import.meta.main) {
   const args = Deno.args;
   if (args.length !== 2) {
     console.error(
-      "Usage: deno run --allow-net --allow-env --allow-read main.ts <org_name> <metric>",
+      "Usage: deno run --allow-net [--allow-env --allow-read] main.ts <metric> <org_name>",
     );
     console.error("  metric: followers | contributions | items");
     Deno.exit(1);
   }
-  const orgName = args[0];
 
   let metric: Metric;
   try {
-    metric = parseMetric(args[1]);
+    metric = parseMetric(args[0]);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     Deno.exit(1);
   }
+  const orgName = args[1];
 
   const usernames = await listQiitaOrgMembers(orgName);
 
