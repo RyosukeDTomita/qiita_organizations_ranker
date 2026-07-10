@@ -1,12 +1,25 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts",
-    "contributions": "deno run --allow-net main.ts contributions",
-    "followers": "deno run --allow-net --allow-env --allow-read main.ts followers",
-    "items": "deno run --allow-net --allow-env --allow-read main.ts items",
-    "test": "deno test --allow-net --allow-env"
+    "contributions": {
+      "description": "Contribution数で組織メンバーをランキングする(引数: <org_name>)",
+      "command": "deno run --allow-net main.ts contributions"
+    },
+    "followers": {
+      "description": "フォロワー数で組織メンバーをランキングする(要QIITA_API_KEY。引数: <org_name>)",
+      "command": "deno run --allow-net --allow-env --allow-read main.ts followers"
+    },
+    "items": {
+      "description": "投稿記事数で組織メンバーをランキングする(引数: <org_name>)",
+      "command": "deno run --allow-net main.ts items"
+    },
+    "test": {
+      "description": "テストを実行する",
+      "command": "deno test"
+    }
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
+    "@std/path": "jsr:@std/path@^1"
   }
 }

@@ -1,14 +1,11 @@
-import {
-  fetchQiitaOrgUsers,
-  fetchQiitaUserContribution,
-} from "./qiitaScrape.ts";
-import { fetchQiitaUserStats, getQiitaApiKey } from "./qiitaApi.ts";
+import { fetchQiitaOrgMembers, OrgMember } from "./qiitaScrape.ts";
+import { fetchQiitaUserFollowers, getQiitaApiKey } from "./qiitaApi.ts";
 
 /**
  * ランキングの集計対象となる指標。
- * - followers: フォロワー数（Qiita API）
- * - contributions: Contribution数（プロフィールページのスクレイピング）
- * - items: 投稿記事数（Qiita API）
+ * - followers: フォロワー数(Qiita API)
+ * - contributions: Contribution数(メンバーページのスクレイピング)
+ * - items: 投稿記事数(メンバーページのスクレイピング)
  */
 type Metric = "followers" | "contributions" | "items";
 
@@ -19,12 +16,10 @@ const METRIC_LABELS: Record<Metric, string> = {
   items: "article count",
 };
 
-/**
- * Contribution数はスクレイピングで取得するためAPI keyを必要としない。
- * followers / items はQiita APIを利用するためAPI keyが必要。
- */
-function requiresApiKey(metric: Metric): boolean {
-  return metric !== "contributions";
+/** ランキング1件分(ユーザー名とカウント) */
+interface RankedUser {
+  username: string;
+  count: number;
 }
 
 /**
@@ -41,56 +36,75 @@ function parseMetric(value: string): Metric {
   );
 }
 
-/**
- * 指定した指標について、ユーザーのカウントを取得します。
- * @param metric 集計対象の指標
- * @param apiKey Qiita API key（contributionsの場合はnull可）
- * @param username Qiitaのユーザー名
- * @returns 指標のカウント
- */
-async function fetchCount(
-  metric: Metric,
-  apiKey: string | null,
-  username: string,
-): Promise<number> {
-  if (metric === "contributions") {
-    return await fetchQiitaUserContribution(username);
-  }
+/** 使い方(--help)を表示します。 */
+function printHelp(): void {
+  console.log(
+    `Qiita Organizations Ranker
 
-  const stats = await fetchQiitaUserStats(apiKey ?? "", username);
-  return metric === "followers" ? stats.followersCount : stats.itemsCount;
+Usage: deno run --allow-net [--allow-env --allow-read] main.ts <metric> <org_name>
+
+Arguments:
+  metric    集計対象の指標: followers | contributions | items
+  org_name  Qiita組織の名前(URLの一部)
+
+Metrics:
+  followers      フォロワー数(Qiita API。QIITA_API_KEYが必要)
+  contributions  Contribution数(メンバーページのスクレイピング)
+  items          投稿記事数(メンバーページのスクレイピング)
+
+Options:
+  -h, --help  このヘルプを表示する
+
+Examples:
+  deno task followers <org_name>
+  deno task contributions <org_name>
+  deno task items <org_name>`,
+  );
 }
 
 /**
- * QiitaのOrganizationsからユーザー名一覧を取得します。
- * @param orgName Qiita組織の名前（URLの一部）
- * @returns ユーザー名（文字列）の配列を解決するPromise
+ * followers指標について、各メンバーのフォロワー数をQiita APIで取得します。
+ * 取得に失敗したユーザーはランキングに含めず、失敗ユーザー名の配列に集めます。
+ * @param members 集計対象のメンバー一覧
+ * @param apiKey 検証済みのQiita API key
+ * @returns ランキング対象ユーザーと、取得に失敗したユーザー名
  */
-async function listQiitaOrgMembers(orgName: string): Promise<string[]> {
-  try {
-    const usernames = await fetchQiitaOrgUsers(orgName);
-    console.log(
-      `Total members in ${orgName} organization: ${usernames.length}`,
-    );
-    return usernames;
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Error fetching organization members: ${error.message}`);
-    } else {
-      console.error(`Error fetching organization members: ${String(error)}`);
+async function rankByFollowers(
+  members: OrgMember[],
+  apiKey: string,
+): Promise<{ ranked: RankedUser[]; failed: string[] }> {
+  const ranked: RankedUser[] = [];
+  const failed: string[] = [];
+  for (const member of members) {
+    try {
+      const count = await fetchQiitaUserFollowers(apiKey, member.urlName);
+      ranked.push({ username: member.urlName, count });
+    } catch (error) {
+      console.error(
+        `Error fetching ${member.urlName}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      failed.push(member.urlName);
     }
-    return [];
   }
+  return { ranked, failed };
 }
 
 if (import.meta.main) {
-  // 実行時の引数でOrganization名と指標を取得
   const args = Deno.args;
+
+  if (args.includes("-h") || args.includes("--help")) {
+    printHelp();
+    Deno.exit(0);
+  }
+
   if (args.length !== 2) {
     console.error(
       "Usage: deno run --allow-net [--allow-env --allow-read] main.ts <metric> <org_name>",
     );
     console.error("  metric: followers | contributions | items");
+    console.error("Run with --help for details.");
     Deno.exit(1);
   }
 
@@ -103,44 +117,70 @@ if (import.meta.main) {
   }
   const orgName = args[1];
 
-  const usernames = await listQiitaOrgMembers(orgName);
-
-  // followers / items の場合のみQiita API keyを取得
-  let apiKey: string | null = null;
-  if (requiresApiKey(metric)) {
-    try {
-      apiKey = await getQiitaApiKey();
-      if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
-        throw new Error("Invalid or empty API key received");
-      }
-    } catch (error) {
-      console.error(`Failed to get valid API key: ${error}`);
-      Deno.exit(1);
-    }
+  // メンバー一覧を取得(ユーザー名・Contribution数・記事数を含む)
+  let members: OrgMember[];
+  try {
+    members = await fetchQiitaOrgMembers(orgName);
+  } catch (error) {
+    console.error(
+      `Error fetching organization members: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    Deno.exit(1);
   }
 
-  // 各ユーザーのカウントとユーザー名のペアを作成
-  const userCounts: { username: string; count: number }[] = [];
-  for (const username of usernames) {
+  console.log(`Total members in ${orgName} organization: ${members.length}`);
+  if (members.length === 0) {
+    console.error(
+      `No members found for organization "${orgName}". Check the organization name.`,
+    );
+    Deno.exit(1);
+  }
+
+  let ranked: RankedUser[];
+  let failed: string[] = [];
+
+  if (metric === "contributions") {
+    ranked = members.map((m) => ({
+      username: m.urlName,
+      count: m.contribution,
+    }));
+  } else if (metric === "items") {
+    ranked = members.map((m) => ({
+      username: m.urlName,
+      count: m.articlesCount,
+    }));
+  } else {
+    // followersのみQiita APIで取得
+    let apiKey: string;
     try {
-      const count = await fetchCount(metric, apiKey, username);
-      userCounts.push({ username, count });
+      apiKey = await getQiitaApiKey();
     } catch (error) {
-      console.error(`Error processing user ${username}: ${error}`);
-      // Add with zero count and continue with next user
-      userCounts.push({ username, count: 0 });
+      console.error(
+        `Failed to get valid API key: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      Deno.exit(1);
     }
+    ({ ranked, failed } = await rankByFollowers(members, apiKey));
   }
 
   // カウントの多い順にソート
-  userCounts.sort((a, b) => b.count - a.count);
+  ranked.sort((a, b) => b.count - a.count);
 
   // ソート結果を表示
   const label = METRIC_LABELS[metric];
   console.log(`\nUsers ranked by ${label}:`);
-  userCounts.forEach((user, index) => {
+  ranked.forEach((user, index) => {
     console.log(
       `${index + 1}. User: ${user.username}, ${label}: ${user.count}`,
     );
   });
+
+  // 取得に失敗したユーザーは順位から除外し、末尾でまとめて報告する
+  if (failed.length > 0) {
+    console.log(`\nFailed to fetch (${failed.length}): ${failed.join(", ")}`);
+  }
 }

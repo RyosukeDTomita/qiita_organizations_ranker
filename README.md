@@ -19,9 +19,9 @@ QiitaのOrganizationsのデータを集めるプロジェクト
 ### 実装機能一覧
 
 - Organizationsの全ユーザを指定した指標で集計してランキングする。指標は実行時の第2引数で切り替える。
-  - `followers`: フォロワー数（Qiita API）
-  - `contributions`: Contribution数（プロフィールページのスクレイピング。Qiita APIでは取得できないため）
-  - `items`: 投稿記事数（Qiita API）
+  - `followers`: フォロワー数(Qiita API)
+  - `contributions`: Contribution数(メンバーページのスクレイピング。Qiita APIでは取得できないため)
+  - `items`: 投稿記事数(メンバーページのスクレイピング)
 
   ```shell
   Total members in sigma organization: 4
@@ -48,7 +48,7 @@ QiitaのOrganizationsのデータを集めるプロジェクト
 
 1. [Nix](https://nixos.org/download/) をインストールし、flakesを有効化する。
 
-2. `followers` / `items` 指標を使う場合は `.env` に `QIITA_API_KEY` を設定する（`contributions` 指標はスクレイピングのためAPI keyは不要）。
+2. `followers` 指標を使う場合は `.env` に `QIITA_API_KEY` を設定する(`contributions` / `items` 指標はメンバーページのスクレイピングのためAPI keyは不要)。
 
   ```shell
   cat << EOF > org_ranker/.env
@@ -79,7 +79,7 @@ deno task contributions <organization_name>
 deno task items <organization_name>
 ```
 
-`contributions` はプロフィールページのスクレイピングのみで取得するため `--allow-net` だけで動作する。`followers` / `items` は Qiita API key を `.env` から読み込むため `--allow-env --allow-read` も付与している (タスク定義済み)。
+`contributions` / `items` はメンバーページのスクレイピングのみで取得するため `--allow-net` だけで動作する。`followers` は Qiita API key を `.env` から読み込むため `--allow-env --allow-read` も付与している (タスク定義済み)。
 
 ---
 
